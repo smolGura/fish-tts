@@ -1,0 +1,50 @@
+[project]
+name = "fish-tts"
+version = "0.6.0"
+description = "Standalone TTS using DualARTransformer and DAC vocoder"
+readme = "README.md"
+license = "CC-BY-NC-SA-4.0"
+requires-python = ">=3.10"
+authors = [
+    { name = "smolgura", email = "smolgura@example.com" }
+]
+keywords = ["tts", "speech-synthesis", "fish-speech"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Topic :: Multimedia :: Sound/Audio :: Speech",
+]
+
+dependencies = [
+    "torch>=2.0.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "huggingface-hub>=0.20.0",
+    "einops>=0.7.0",
+    "tiktoken>=0.5.0",
+    "tqdm>=4.65.0",
+    # dac and audiotools are required but have complex dependencies.
+    # Install them separately:
+    # pip install descript-audio-codec
+    # pip install git+https://github.com/descriptinc/audiotools
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "ruff>=0.1.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["fish_tts"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
