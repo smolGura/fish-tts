@@ -344,7 +344,8 @@ class FishTTS:
 
         # Encode with vocoder
         audio_tensor = torch.from_numpy(audio).unsqueeze(0).unsqueeze(0)
-        audio_tensor = audio_tensor.to(self.device, dtype=torch.float32)
+        # Match vocoder dtype (bf16 on CUDA for faster inference)
+        audio_tensor = audio_tensor.to(self.device, dtype=self._dtype)
 
         audio_lengths = torch.tensor([audio_tensor.shape[-1]], device=self.device)
 
