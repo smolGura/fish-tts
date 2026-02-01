@@ -1,31 +1,20 @@
-# Fish-Speech ONNX
+# fish-tts
 
-Portable and fast TTS inference using Fish-Speech with ONNX acceleration.
+Lightweight TTS using DualARTransformer and DAC vocoder, based on [Fish-Speech](https://github.com/fishaudio/fish-speech).
 
 ## Features
 
-- **Standalone package**: Can be installed and used independently
-- **Portability first**: Minimal dependencies, cross-platform support
-- **Fast inference**: ONNX acceleration with GPU/CPU support
-- **Automatic model download**: Models downloaded from HuggingFace Hub on first use
+- **Standalone package**: No external fish_speech dependency
+- **Singleton pattern**: Model loaded once per process
+- **torch.compile**: ~120 tokens/sec, RTF ~0.26
+- **Prefilled references**: Set voice profiles once, reuse across calls
+- **Pipeline streaming**: Parallel generation and decoding (~18% faster)
+- **Dynamic references**: Add/remove voice profiles at runtime
 
 ## Installation
 
 ```bash
-# Basic installation (CPU only)
-pip install fish-speech-onnx
-
-# With CUDA support
-pip install fish-speech-onnx[cuda]
-
-# For model conversion
-pip install fish-speech-onnx[convert]
-```
-
-Or using uv:
-
-```bash
-uv add fish-speech-onnx
+uv add git+https://github.com/smolGura/fish-tts
 ```
 
 ## Usage
@@ -33,62 +22,58 @@ uv add fish-speech-onnx
 ### Basic Synthesis
 
 ```python
-from fish_speech_onnx import FishSpeechONNX, SynthesisConfig
+from fish_tts import get_instance
 
-# Initialize (models auto-downloaded to ~/.cache/fish-speech-onnx/)
-synth = FishSpeechONNX(device="cuda")  # or "cpu"
+# Get singleton instance (first call loads and compiles model)
+synth = get_instance()
 
 # Basic synthesis
-audio = synth.synthesize("Hello, world!")
-with open("output.wav", "wb") as f:
-    f.write(audio)
-
-# Custom configuration
-config = SynthesisConfig(temperature=0.5, top_p=0.9)
-audio = synth.synthesize("Custom config", config=config)
-```
-
-### Streaming Synthesis
-
-```python
-# Low-latency streaming
-for chunk in synth.synthesize_stream("Streaming output"):
-    play_audio(chunk)  # Play in real-time
+audio = synth.synthesize("Hello world")
 ```
 
 ### Voice Cloning
 
 ```python
-# Use reference audio for voice cloning
-with open("reference.wav", "rb") as f:
-    ref_audio = f.read()
-audio = synth.synthesize("Clone voice", reference_audio=ref_audio)
+from fish_tts import get_instance, VoiceProfile
+
+synth = get_instance()
+
+# Load voice profile
+profile = VoiceProfile.load("voice.npy", text="reference transcript")
+
+# Set reference (prefilled for efficiency)
+synth.set_references([profile])
+
+# Synthesize with cloned voice
+audio = synth.synthesize("Text to speak")
 ```
 
-### Custom Model Directory
+### Streaming
 
 ```python
-# Specify model directory
-synth = FishSpeechONNX(
-    model_dir="./my_models",  # Downloads here if not exists
-    device="cpu",
-)
+# Pipeline streaming for low latency
+for chunk in synth.synthesize_stream("Long text to speak..."):
+    play_audio(chunk)
 ```
 
-## Architecture
+### Dynamic Reference Management
 
-Phase 1 (Current): Hybrid mode
-- Vocoder: ONNX (fast inference)
-- Transformer: PyTorch (compatibility)
+```python
+# Add/remove voice profiles at runtime
+synth.add_reference(another_profile)
+synth.clear_references()
+```
 
-Phase 2 (Future): Full ONNX
-- Complete ONNX conversion for maximum portability
+## Performance
+
+| Mode | Speed | RTF |
+|------|-------|-----|
+| torch.compile | ~120 tokens/sec | ~0.26 |
+| Pipeline streaming | +18% faster | - |
 
 ## License
 
 CC-BY-NC-SA-4.0
-
-This project uses models from [Fish-Speech](https://github.com/fishaudio/fish-speech).
 
 ## References
 
