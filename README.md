@@ -1,6 +1,6 @@
 # fish-tts
 
-Lightweight TTS using DualARTransformer and DAC vocoder, based on [Fish-Speech](https://github.com/fishaudio/fish-speech).
+Inference-focused package for [Fish-Speech](https://github.com/fishaudio/fish-speech).
 
 ## Features
 
